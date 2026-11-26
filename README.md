@@ -338,6 +338,7 @@ Saída: `[+] QUEBRADO: senha123`.
 keylogger em tempo real, captura de cookies/localStorage e extração de credenciais e cookies do Chrome
 via CDP (sessão viva, sem root) ou direto do `/data/data` com `su`. Inclui espelhamento do WhatsApp Web
 sem QR (`harvest wa`) e esteganografia de URL em JPEG (`stego`/`unstego`). Uso: `ncx-htx`, `ncx-htx -h`.
+## ! USE `ncx-htx add <modulo> para adicionar ao painel da htx! 
 
 **ncx-reap** — L7 reaper em Go. 22 modos: HTTP/2 multiplexado, rapid reset, HPACK bomb, SYN cru com IP
 falsificado, pipelining, exaustão de FD, slow POST, requests malformados, slowloris, Range gigante,
