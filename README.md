@@ -1,7 +1,6 @@
 # NCR0X :: Ncrox para Termux
 
-### ATENÇÃO: FERRAMENTA CRIADA APARTIR DE SATANACHIA NCROX E MEU RAT: N3CR0RAT
-## sem a parte de acesso remoto e controle total; segue o Markdown abaixo:
+### ATENÇÃO: FERRAMENTA CRIADA APARTIR DE SATANACHIA NCROX — N3CR0-X
 
 > Versão do [Satanachia ncrox](https://github.com/N3CR0-X/ncrox) para o Termux, com réplica dos comandos originais, arsenal ofensivo, repositório de ferramentas e identidade banner próprio.
 > Arquivo único. Sem root. Sem distro. Tudo no aparelho.
